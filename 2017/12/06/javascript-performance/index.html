@@ -17,10 +17,12 @@
 
 
 
-  <meta name="description" content="javascript-performance"/>
+  <meta name="description" content="高性能JavaScript"/>
 
 
 
+
+  <meta name="keywords" content="JavaScript, RE:CREACTORS" />
 
 
 
@@ -40,7 +42,7 @@
 
 
 
-<link rel="canonical" href="http://yoursite.com/2017/12/06/javascript-performance/"/>
+<link rel="canonical" href="https://nulitype.github.io/2017/12/06/javascript-performance/"/>
 
 
 <link rel="stylesheet" type="text/css" href="/css/style.css?v=2.6.0" />
@@ -77,7 +79,7 @@
 
 
 
-    <title> javascript-performance - RE:CREACTORS </title>
+    <title> 高性能JavaScript - RE:CREACTORS </title>
   </head>
 
   <body><div id="mobile-navbar" class="mobile-navbar">
@@ -211,7 +213,7 @@
     <header class="post-header">
       <h1 class="post-title">
         
-          javascript-performance
+          高性能JavaScript
         
       </h1>
 
@@ -226,10 +228,82 @@
 
     
     
+  <div class="post-toc" id="post-toc">
+    <h2 class="post-toc-title">Contents</h2>
+    <div class="post-toc-content">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#加载和执行"><span class="toc-text">加载和执行</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Deferred-Scripts"><span class="toc-text">Deferred Scripts</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#动态脚本元素"><span class="toc-text">动态脚本元素</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#XMLHttpRequest脚本注入"><span class="toc-text">XMLHttpRequest脚本注入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#推荐的无阻塞模式"><span class="toc-text">推荐的无阻塞模式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#数据存取"><span class="toc-text">数据存取</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#字面量"><span class="toc-text">字面量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#本地变量"><span class="toc-text">本地变量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#数组元素"><span class="toc-text">数组元素</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#对象成员"><span class="toc-text">对象成员</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#管理作用域"><span class="toc-text">管理作用域</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#解析标识符的性能"><span class="toc-text">解析标识符的性能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#改变作用域链"><span class="toc-text">改变作用域链</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#闭包"><span class="toc-text">闭包</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#优化存储数据的性能"><span class="toc-text">优化存储数据的性能</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#DOM编程"><span class="toc-text">DOM编程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#HTML集合"><span class="toc-text">HTML集合</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#重绘与重排"><span class="toc-text">重绘与重排</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#重排的发生"><span class="toc-text">重排的发生</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#渲染树变化的排队与刷新"><span class="toc-text">渲染树变化的排队与刷新</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#最小化重绘和重排"><span class="toc-text">最小化重绘和重排</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#批量修改DOM"><span class="toc-text">批量修改DOM</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#事件委托"><span class="toc-text">事件委托</span></a></li></ol></li></ol>
+    </div>
+  </div>
+
 
     <div class="post-content">
       
-        
+        <h2 id="加载和执行"><a href="#加载和执行" class="headerlink" title="加载和执行"></a>加载和执行</h2><p>多数浏览器使用单一进程来处理UI刷新和JavaScript脚本执行，所以同一时刻只能做一件事情。JavaScript执行过程越久，浏览器等待响应的时间就越长。</p>
+<p>因为当浏览器遇到<code>&lt;script&gt;</code>标签的时候，当前<code>HTML</code>不知道<code>JavaScript</code>是否会对页面作出修改，所以此时浏览器需要停止处理页面，先执行<code>JavaScript</code>代码，然后再继续解析和渲染页面。所以说每当<code>&lt;script&gt;</code>标签出现都会让页面停止停止下载和渲染，等待脚本的解析和执行。</p>
+<p>为了防止尽量减少脚本对页面的阻塞，尽可能把<code>&lt;script&gt;</code>标签放到<code>&lt;body&gt;</code>的底部。</p>
+<a id="more"></a>
+<h3 id="Deferred-Scripts"><a href="#Deferred-Scripts" class="headerlink" title="Deferred Scripts"></a>Deferred Scripts</h3><p><code>HTML4</code>中为<code>&lt;script&gt;</code>标签定义了一个扩展属性：<code>defer</code>。<code>defer</code>属性表明本元素所包含的脚本不会修改DOM，因此代码可以安全地延迟执行。<br><code>HTML5</code>规范还引入了<code>async</code>属性，用于异步加载脚本，<code>async</code>和<code>defer</code>相同点在于都是采用并行下载，下载过程中不会阻塞。区别在于执行时机，<code>async</code>是加载完成后自动执行，<code>defer</code>是需要等待页面完成后再执行（遇到<code>&lt;script&gt;</code>标签就会开始下载，直到DOM加载完成，onload事件被触发前才会执行）。</p>
+<h3 id="动态脚本元素"><a href="#动态脚本元素" class="headerlink" title="动态脚本元素"></a>动态脚本元素</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">var script = document.createElement(&quot;script&quot;);</div><div class="line">script.type = &quot;text/javascript&quot;;</div><div class="line">script.src = &quot;file.js&quot;;</div><div class="line">document.getElementsByTagName(&quot;head&quot;)[0]appendChild(script);</div></pre></td></tr></table></figure>
+<p>这个新创建的<code>&lt;script&gt;</code>元素加载了<code>file.js</code>文件。文件会在该元素被添加到页面时开始下载。这种技术的优点在于无论什么时候开始下载，文件下载和执行过程不会阻塞页面。</p>
+<p>使用动态脚本节点下载文件时，返回的代码通常会立刻执行。某些浏览器会在元素接受完成时触发<code>load</code>事件。</p>
+<h3 id="XMLHttpRequest脚本注入"><a href="#XMLHttpRequest脚本注入" class="headerlink" title="XMLHttpRequest脚本注入"></a>XMLHttpRequest脚本注入</h3><p>先创建一个<code>XHR</code>对象，然后用它下载<code>JavaScript</code>文件，最后通过动态创建<code>&lt;script&gt;</code>元素将代码注入页面中。 </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">var xhr = new XMLHttpRequest();</div><div class="line">xhr.open(&quot;get&quot;, &quot;file.js&quot;);</div><div class="line">xhr.onreadystatechange = function() &#123;</div><div class="line">  if (xhr.readyState == 4) &#123;</div><div class="line">    if (xhr.status == 200) &#123;</div><div class="line">      var script = document.createElement(&quot;script&quot;);</div><div class="line">      script.type = &quot;text/javascript&quot;;</div><div class="line">      script.text = xhr.responseText;</div><div class="line">      document.body.appenChild(script);</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line">xhr.send(null);</div></pre></td></tr></table></figure>
+<p>此方法的优点是可以下载<code>JavaScript</code>代码但不立即执行，直到新创建的<code>&lt;script&gt;</code>元素添加到页面，代码才会执行。<br>缺点是下载的文件需要处于相同的域，这意味这<code>JavaScript</code>文件不能从CDN下载。</p>
+<h3 id="推荐的无阻塞模式"><a href="#推荐的无阻塞模式" class="headerlink" title="推荐的无阻塞模式"></a>推荐的无阻塞模式</h3><p>先动态加载所需的代码，然后加载初始化页面所需的剩下代码，之后再加载剩余的<code>JavaScript</code>代码。</p>
+<h2 id="数据存取"><a href="#数据存取" class="headerlink" title="数据存取"></a>数据存取</h2><p><code>JavaScript</code>有四种基本的数据存取位置。</p>
+<h4 id="字面量"><a href="#字面量" class="headerlink" title="字面量"></a>字面量</h4><p>字面量只代表自身，不存储特定位置。（String, Boolean, Number, Object,Null, Undefined）</p>
+<h4 id="本地变量"><a href="#本地变量" class="headerlink" title="本地变量"></a>本地变量</h4><p>使用<code>var</code>定义的变量。</p>
+<h4 id="数组元素"><a href="#数组元素" class="headerlink" title="数组元素"></a>数组元素</h4><p>存储在<code>JavaScript</code>数组对象内部，以数字作为索引。</p>
+<h4 id="对象成员"><a href="#对象成员" class="headerlink" title="对象成员"></a>对象成员</h4><p>存储在<code>JavaScript</code>对象内部，以字符串作为索引。</p>
+<h3 id="管理作用域"><a href="#管理作用域" class="headerlink" title="管理作用域"></a>管理作用域</h3><p>每一个<code>JavaScript</code>函数都是一个对象，是<code>Function</code>对象的一个实例，与其他对象一样，拥有可以变成访问的属性和一系列不能通过代码访问而仅供JavaScript引擎存取的内部属性。其中一个内部属性是<code>[[scope]]</code>。</p>
+<p>内部属性<code>[[scope]]</code>包含了一个函数被创建的作用域中对象的集合。这个集合称为函数的<strong>作用域链</strong>，他决定了哪些数据能被函数访问。函数作用域中的每个对象都被称为一个可变对象，每个可变对象都以“键值对”的形式存在。<br>当函数被创建后，他的作用域链就会被此函数作用域中可访问的数据对象所填充。</p>
+<p>当函数被创建，它的作用域链会插入一个全局对象（全局范围内定义的变量如window,navigator,document）。</p>
+<p>函数自己的作用域会在函数执行的时候用到。执行函数的时候会创建一个执行环境（execution context）的内部对象。它定义了函数执行时的环境，函数每次执行时对应的执行环境都是独一无二的，所以多次调用同一个函数会创建多个执行环境。当函数执行完毕，执行环境就被销毁。</p>
+<p>每个执行环境都有自己的作用域链，用于解析标识符。当执行环境被创建的时候，它的作用域链会初始化为函数的<code>[[scope]]</code>属性中的对象，这些值会按照它们出现在函数中的顺序复制到执行环境的作用域链中。一旦这个过程完成，一个称为<strong>活动对象</strong>（activation object）的新对象就会被创建，活动对象作为函数运行时的变量对象，包含了所有局部变量，命名参数，参数集合和<code>this</code>。然后推入到作用域链的最前端。活动对象也会随着执行环境的销毁而销毁。</p>
+<p>函数执行过程中，每遇到一个变量，都会经历一次标识符解析，用于决定去哪里获取或者存储数据，此过程会搜索执行环境的作用域链，查找同名的标识符。搜索过程是从作用域链头开始，就是从活动对象开始，如果找到就是用这个标识符的对象，没找到就会搜索作用域链的下一个对象，如果最后都没找到匹配的对象，那么标识符就被视为未定义（undefined）。</p>
+<h3 id="解析标识符的性能"><a href="#解析标识符的性能" class="headerlink" title="解析标识符的性能"></a>解析标识符的性能</h3><p>解析标识符是由代价的，在执行环境的作用域链中，标识符所在的位置越深，读写速度也就越慢。所以函数中读写局部变量总是最快的。全局变量是最慢的，因为存在于作用域链的尾端。</p>
+<h3 id="改变作用域链"><a href="#改变作用域链" class="headerlink" title="改变作用域链"></a>改变作用域链</h3><p>使用<code>with</code>语句会创建一个新的变量对象，包含了参数指定的对象的所有属性。这个对象会推入作用域链的前端，这意味着函数的活动对象会处于作用域链的第二位，访问局部变量等对象的代价就更高了。</p>
+<p><code>try-catch</code>的<code>catch</code>子句也具有相同的效果，当<code>try</code>代码块发生错误，执行过程会自动跳到<code>catch</code>子句中，然后把异常对象推入变量对象并在作用域链的首位。在<code>catch</code>代码块内部，函数的活动对象会放在作用域链的第二个对象中。<code>catch</code>执行完毕，作用域链会返回到之前的状态。</p>
+<h3 id="闭包"><a href="#闭包" class="headerlink" title="闭包"></a>闭包</h3><p>闭包是<code>JavaScript</code>的一个特性，它允许函数访问局部作用域之外的数据。为了能让闭包访问到局部作用域之外的数据，需要创建一个特定的作用域链。</p>
+<p>当闭包被创建的时候，它的<code>[[scope]]</code>属性会初始化为函数执行环境作用域链的对象。由于闭包的<code>[[scope]]</code>属性包含了与函数执行环境作用域链相同对象的引用，通常来说，函数的活动对象会随着执行环境一同销毁，但由于闭包对它有引用，因此活动对象无法被销毁，这意味着闭包会带来更多的内存开销。</p>
+<p>闭包执行时，它也会创建自己的执行环境，它的作用域链会初始化为<code>[[scope]]</code>属性上的对象，并且常见一个活动对象推入到作用域链的前端。</p>
+<h3 id="优化存储数据的性能"><a href="#优化存储数据的性能" class="headerlink" title="优化存储数据的性能"></a>优化存储数据的性能</h3><p>把全局变量的引用存储到一个局部变量中，然后使用局部变量代替全局变量。<br>嵌套的对象成员会明显影响性能，尽量少用。<br>属性或方法在原型链的位置越深，访问速度也越慢。</p>
+<h2 id="DOM编程"><a href="#DOM编程" class="headerlink" title="DOM编程"></a>DOM编程</h2><p>通常浏览器把DOM和<code>JavaScript</code>独立实现。两个互相独立的功能通过接口连接，就会产生消耗。</p>
+<p>访问DOM元素是有代价的，而修改元素代价会更大，因为这会导致浏览器重新计算页面的几何变化。</p>
+<h3 id="HTML集合"><a href="#HTML集合" class="headerlink" title="HTML集合"></a>HTML集合</h3><p><code>HTML</code>集合是包含了DOM节点引用的类数组对象。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">document.getElementByName()</div><div class="line">document.getElementByClassName()</div></pre></td></tr></table></figure></p>
+<p>这些方法的返回值就是一个集合。DOM标准定义，HTML集合以一种 assumed to be live 的状态存在，这意味着底层文档对象更新时，它也会自动更新。实际上，HTML集合一直与文档保持连接，每次需要获取最新的信息时，都会重复执行查询过程。</p>
+<h3 id="重绘与重排"><a href="#重绘与重排" class="headerlink" title="重绘与重排"></a>重绘与重排</h3><p>浏览器下载完页面中的所有组件，<code>HTML</code>,<code>JavaScript</code>,<code>CSS</code>和其他资源之后，会解析并生成两个数据结构：<code>DOM树</code>和<code>渲染树</code>。</p>
+<p><code>DOM树</code>：表示页面结构。<br><code>渲染树</code>:表示DOM节点如何显示。</p>
+<p><code>DOM树</code>的每一个需要显示的节点在<code>渲染树</code>中至少存在一个对应的节点（隐藏的DOM元素在渲染树上没节点）。渲染树的节点一般称为<code>frames</code>或<code>boxes</code>，符合<code>CSS</code>模型的定义。一旦<code>DOM树</code>和<code>渲染树</code>构建完成，浏览器就开始<strong>绘制(paint)</strong>页面元素。</p>
+<p>当DOM的变化影响了元素的几何属性，浏览器需要重新计算元素的几何属性，同样其他受影响的元素也要计算。浏览器会使渲染树中受到影响的部分失效，并且重新构造渲染树。这个过程称为<strong>重排(reflow)</strong>。完成重排之后，浏览器会重新绘制受到影响的部分到屏幕中，此过程称为<strong>重绘(repaint)</strong>。</p>
+<p>并不是所有的操作都会导致reflow的发生，比如说只是改变颜色，这是会发生一次reflow，因为元素的布局并没有改变。重绘和重排都是昂贵的操作，都会导致UI<br>UI反应迟钝。</p>
+<h3 id="重排的发生"><a href="#重排的发生" class="headerlink" title="重排的发生"></a>重排的发生</h3><ul>
+<li>添加或删除可见的DOM元素</li>
+<li>元素位置改变</li>
+<li>元素尺寸改变（margin, padding, border, width, height）</li>
+<li>内容改变 (如：文本改变 图片被另一个不同尺寸的图片代替)</li>
+<li>页面渲染器初始化</li>
+<li>浏览器窗口尺寸改变</li>
+</ul>
+<p>以上的情况会触发重排。根据改变的范围和程度，渲染树中或大或小的对应的部分也需要重新计算。有些改变会触发整个页面的重排，例如滚动条出现时。</p>
+<h3 id="渲染树变化的排队与刷新"><a href="#渲染树变化的排队与刷新" class="headerlink" title="渲染树变化的排队与刷新"></a>渲染树变化的排队与刷新</h3><p>由于每次重排都会产生计算消耗，大多数浏览器通过队列化修改并批量执行来优化重排过程。有以下的办法，能强制浏览器刷新队列触发重排返回最新的布局。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">offsetTop, offsetLeft, offsetWidth, offsetHeight</div><div class="line">scrollTop, scrollLeft, scrollWidth, scrollHeight</div><div class="line">clientTop, clientLeft, clientWidth, clientHeight</div><div class="line">getComputedStyle()</div></pre></td></tr></table></figure></p>
+<h3 id="最小化重绘和重排"><a href="#最小化重绘和重排" class="headerlink" title="最小化重绘和重排"></a>最小化重绘和重排</h3><p>为了减少发生次数，应合并多次对DOM和样式的修改，然后一次性处理。</p>
+<h4 id="批量修改DOM"><a href="#批量修改DOM" class="headerlink" title="批量修改DOM"></a>批量修改DOM</h4><p>当需要对DOM元素进行一系列操作时，可以通过几个步骤减少来重绘和重排的次数：</p>
+<ol>
+<li>使元素脱离文档流</li>
+<li>改变元素</li>
+<li>把元素带回文档中</li>
+</ol>
+<p>虽然1和3都会触发重排，但是如果忽略这两个步骤，那么在第二个步骤产生的修改都会触发一次重排。</p>
+<p>脱离文档流有三种基本的方法：</p>
+<ol>
+<li>隐藏元素，应用修改，重新显示</li>
+<li>使用document fragment构建一个子树，再把它拷贝回文档</li>
+<li>将原始元素拷贝到一个脱离文档流的节点，修改副本，完成后再替换原始元素</li>
+</ol>
+<h3 id="事件委托"><a href="#事件委托" class="headerlink" title="事件委托"></a>事件委托</h3><p>当页面有大量元素时，而且每一个元素都需要一次或多次绑定事件处理器，这种情况可能会影响性能。每绑定一个事件处理器都是有代价的，要么加重了页面的负担（更多的标签或JavaScript代码），要么增加了执行时间。事件绑定占用了处理时间，而且浏览器需要跟踪每个事件处理器，这会占用更多的内存。</p>
+<p>可以利用事件委托技术较优雅去处理DOM事件。事件委托基于DOM事件标准的三个阶段（捕获，到达，冒泡）。所以只需要给外层元素绑定一个处理器，就可以处理其子元素上出发的事件。</p>
+
       
     </div>
 
@@ -240,11 +314,11 @@
   <div class="post-copyright">
     <p class="copyright-item">
       <span>Author: </span>
-      <a href="http://yoursite.com">Rick</a>
+      <a href="https://nulitype.github.io">Rick</a>
     </p>
     <p class="copyright-item">
       <span>Link: </span>
-      <a href="http://yoursite.com/2017/12/06/javascript-performance/">http://yoursite.com/2017/12/06/javascript-performance/</a>
+      <a href="https://nulitype.github.io/2017/12/06/javascript-performance/">https://nulitype.github.io/2017/12/06/javascript-performance/</a>
     </p>
     <p class="copyright-item">
       <span>License: </span>
@@ -262,16 +336,16 @@
     
       <footer class="post-footer">
         
+          <div class="post-tags">
+            
+              <a href="/tags/JavaScript/">JavaScript</a>
+            
+          </div>
+        
         
         
   <nav class="post-nav">
     
-    
-      <a class="next" href="/2017/10/03/hello-world/">
-        <span class="next-text nav-default">Hello World</span>
-        <span class="prev-text nav-mobile">Next</span>
-        <i class="iconfont icon-right"></i>
-      </a>
     
   </nav>
 
